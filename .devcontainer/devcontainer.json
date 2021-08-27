@@ -1,3 +1,14 @@
 {
-    "image": "tizho/azurertos-ros"
+    // Docker image location: https://github.com/TiejunMS/docker-azurertos-ros
+    "image": "tizho/azurertos-ros",
+    "extensions": [
+		"ms-vscode.cpptools",
+		"ms-vscode.cmake-tools",
+		"marus25.cortex-debug",
+		"vsciot-vscode.vscode-dtdl",
+		"xaver.clang-format",
+		"ms-azuretools.vscode-docker"
+	],
+
+	"postCreateCommand": "git submodule update --recursive --init"
 }
