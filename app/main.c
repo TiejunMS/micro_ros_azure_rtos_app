@@ -1,10 +1,14 @@
 #include <stdio.h>
 
+#ifdef __linux__
+#include "pcap_networking.h"
+#else
 #include "board_init.h"
 #include "stm32l475e_iot01.h"
 #include "cmsis_utils.h"
 #include "stm_networking.h"
 #include "secrets.h"
+#endif
 
 #include <rclc/rclc.h>
 #include <rclc/executor.h>
@@ -25,12 +29,16 @@ void subscription_callback(const void * msgin)
 {
   const std_msgs__msg__Int32 * msg = (const std_msgs__msg__Int32 *)msgin;
 
+#ifdef __linux__
+  printf("Receive data: %d\r\n", (int)(msg->data));
+#else
   if (msg->data == 0)
   {
       BSP_LED_Off(LED2);
   } else {
       BSP_LED_On(LED2);
   }
+#endif
 }
 
 void timer_callback(rcl_timer_t * timer, int64_t last_call_time)
@@ -41,7 +49,7 @@ void timer_callback(rcl_timer_t * timer, int64_t last_call_time)
     static std_msgs__msg__Int32 msg = {0};
 
     if(RMW_RET_OK == rcl_publish(&publisher, &msg, NULL)){
-        printf("Sent: %ld\n", msg.data);
+        printf("Sent: %ld\n", (long int)(msg.data));
         msg.data++;
     } else {
         printf("Failed to send\n");
@@ -51,7 +59,11 @@ void timer_callback(rcl_timer_t * timer, int64_t last_call_time)
 void microros_thread(ULONG parameter)
 {
     // Initialize the network
+#ifdef __linux__
+    if (pcap_network_init() != NX_SUCCESS)
+#else
     if (stm32_network_init(WIFI_SSID, WIFI_PSK, WPA2_PSK_AES) != NX_SUCCESS)
+#endif
     {
         printf("Failed to initialize the network\r\n");
         return;
@@ -109,11 +121,13 @@ void microros_thread(ULONG parameter)
 
 void tx_application_define(void* first_unused_memory)
 {
+#ifndef __linux__
     systick_interval_set(TX_TIMER_TICKS_PER_SECOND);
+#endif
 
     // Configure micro-ROS Agent IP and port
     static custom_transport_args args = {
-      .agent_ip_address = IP_ADDRESS(192,168,1,57),
+      .agent_ip_address = IP_ADDRESS(192,168,1,1),
       .agent_port = 8888
     };
 
@@ -148,8 +162,10 @@ void tx_application_define(void* first_unused_memory)
 
 int main(void)
 {
+#ifndef __linux__
     // Initialize the board
     board_init();
+#endif
 
     // Enter the ThreadX kernel
     tx_kernel_enter();

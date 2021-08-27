@@ -37,9 +37,11 @@
 #define NX_DNS_CLIENT_USER_CREATE_PACKET_POOL
 #define NX_DNS_CLIENT_CLEAR_QUEUE
 
+#ifndef __linux__
 /* Use hardware rand */
 extern int hardware_rand(void);
 #define NX_RAND hardware_rand
+#endif
 
 /* Define various build options for the NetX Duo port.  The application should either make changes
    here by commenting or un-commenting the conditional compilation defined OR supply the defines

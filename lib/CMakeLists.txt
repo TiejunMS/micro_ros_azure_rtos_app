@@ -15,8 +15,12 @@ set(NX_AZURE_DISABLE_IOT_SECURITY_MODULE OFF CACHE BOOL "Security Center")
 # Core libraries
 add_subdirectory(${CORE_LIB_DIR}/threadx threadx)
 
-# Using a local copy of NetXDuo that has been customized for this boards WiFi module
-add_subdirectory(netxduo)
+if(DEFINED PCAP_NAME)
+    add_subdirectory(${CORE_LIB_DIR}/netxduo netxduo)
+else()
+    # Using a local copy of NetXDuo that has been customized for this boards WiFi module
+    add_subdirectory(netxduo)
 
-add_subdirectory(stm32cubel4)
+    add_subdirectory(stm32cubel4)
+endif()
 add_subdirectory(netx_driver)

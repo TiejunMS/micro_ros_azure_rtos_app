@@ -9,6 +9,6 @@
 		"xaver.clang-format",
 		"ms-azuretools.vscode-docker"
 	],
-
+	"runArgs": ["--privileged"],
 	"postCreateCommand": "git submodule update --recursive --init"
 }
