@@ -1,6 +1,6 @@
 {
     // Docker image location: https://github.com/TiejunMS/docker-azurertos-ros
-    "image": "tizho/azurertos-ros:57371",
+    "image": "tizho/azurertos-micro-ros-agent",
     "extensions": [
 		"ms-vscode.cpptools",
 		"ms-vscode.cmake-tools",
