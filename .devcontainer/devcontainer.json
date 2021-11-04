@@ -9,6 +9,7 @@
 		"xaver.clang-format",
 		"ms-azuretools.vscode-docker"
 	],
+	"appPort": [ "8888:8888/udp" ],
 
 	"postCreateCommand": "git submodule update --recursive --init"
 }

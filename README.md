@@ -10,42 +10,80 @@
 
 # micro-ROS app for Microsoft Azure RTOS
 
-[![CI](https://github.com/micro-ROS/micro_ros_azure_rtos_app/actions/workflows/ci.yml/badge.svg)](https://github.com/micro-ROS/micro_ros_azure_rtos_app/actions/workflows/ci.yml)
+[![CI](https://github.com/TiejunMS/micro_ros_azure_rtos_app/actions/workflows/ci.yml/badge.svg)](https://github.com/micro-ROS/micro_ros_azure_rtos_app/actions/workflows/ci.yml)
 
 This example application has been tested in Azure RTOS 6.1.7 and STMicroelectronics B-L475E-IOT01A.
 
-## Dependencies
-
-This component needs `colcon` and other Python 3 packages in order to build micro-ROS packages:
-
-```bash
-pip3 install catkin_pkg lark-parser empy colcon-common-extensions
-```
-
 ## Usage
 
-1. Clone recursively this repo:
+1. Install [Visual Studio Code](https://code.visualstudio.com/download) and [Docker engine](https://docs.docker.com/engine/install/)
+
+2. Clone this repo. See [here](https://docs.docker.com/desktop/windows/wsl/#best-practices) for best practices on Windows:
 
 ```bash
-git clone --recursive https://github.com/micro-ROS/micro_ros_azure_rtos_app
+git clone https://github.com/TiejunMS/micro_ros_azure_rtos_app
 ```
 
-2. Configure the CMake project
+3. Open the micro_ros_azure_rtos_app folder in VSCode dev container by *Remote-Containers: Reopen in Container* command. See tutorial [here](https://code.visualstudio.com/docs/remote/containers-tutorial)
+
+4. Update WIFI credentials in [app/secrets.h](app/secrets.h)
+
+5. Update IP address of your PC in [app/main.c](app/main.c#L116)
+
+6. Configure the CMake project
 
 ```bash
 cmake -Bbuild -GNinja
 ```
 
-3. Build the CMake project
+7. Build the CMake project
 
 ```bash
 cmake --build build
 ```
 
-4. Flash the board
+8. Run microROS agent in VSCode terminal
 
 ```bash
-openocd -f interface/stlink-v2-1.cfg -f target/stm32l4x.cfg -c init -c "reset halt" -c "flash write_image erase build/app/stm32l475_azure_iot.bin  0x08000000" -c "reset" -c "exit"
+ros2 run micro_ros_agent micro_ros_agent udp4 --port 8888
+```
+
+9. Download `build/app/stm32l475_azure_iot.bin` and copy it to USB disk shown in your PC
+
+## Output
+
+When the device is connected, the output from microROS terminal is,
+```
+[1636002041.354267] info     | UDPv4AgentLinux.cpp | init                     | running...             | port: 8888
+[1636002041.355627] info     | Root.cpp           | set_verbose_level        | logger setup           | verbose_level: 4
+[1636002048.937087] info     | Root.cpp           | create_client            | create                 | client_key: 0xXXXXXXXX, session_id: 0xXX
+[1636002048.937165] info     | SessionManager.hpp | establish_session        | session established    | client_key: 0xXXXXXXXX, address: xx.xx.xx.xx:xxxx
+```
+
+Output from serial is,
+```
+Starting micro-ROS thread
+
+Initializing WiFi
+        Module: ISM43362-M3G-L44-SPI
+        MAC address: xx:xx:xx:xx:xx:xx
+        Firmware revision: C3.5.2.5.STM
+        Connecting to SSID 'xxx'
+SUCCESS: WiFi connected to xxx
+
+Initializing DHCP
+        IP address: xx.xx.xx.xx
+        Gateway: xx.xx.xx.xx
+SUCCESS: DHCP initialized
+
+Initializing DNS client
+        DNS address: xx.xx.xx.xx
+SUCCESS: DNS client initialized
+
+Sent: 0
+Sent: 1
+Sent: 2
+...
 ```
 
 ## Purpose of the Project
