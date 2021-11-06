@@ -40,7 +40,10 @@
                 "-DRMW_UXRCE_MAX_SUBSCRIPTIONS=1",
                 "-DRMW_UXRCE_MAX_SERVICES=1",
                 "-DRMW_UXRCE_MAX_CLIENTS=1",
-                "-DRMW_UXRCE_MAX_HISTORY=1"
+                "-DRMW_UXRCE_MAX_HISTORY=1",
+                "-DRMW_UXRCE_ENTITY_CREATION_TIMEOUT=10000",
+                "-DRMW_UXRCE_ENTITY_DESTROY_TIMEOUT=10000",
+                "-DRMW_UXRCE_PUBLISH_RELIABLE_TIMEOUT=10000",
             ]
         },
         "tracetools": {
