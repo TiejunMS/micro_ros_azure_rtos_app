@@ -1,0 +1,15 @@
+{
+    // Docker image location: https://github.com/TiejunMS/docker-azurertos-ros
+    "image": "tizho/azurertos-micro-ros-agent",
+    "extensions": [
+		"ms-vscode.cpptools",
+		"ms-vscode.cmake-tools",
+		"marus25.cortex-debug",
+		"vsciot-vscode.vscode-dtdl",
+		"xaver.clang-format",
+		"ms-azuretools.vscode-docker"
+	],
+	"appPort": [ "8888:8888/udp" ],
+
+	"postCreateCommand": "git submodule update --recursive --init"
+}
