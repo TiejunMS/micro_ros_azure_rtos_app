@@ -52,14 +52,14 @@ function getEventHubDecodedMessage(eventData): string {
 //
 // monitorTelemetryMessageDoWork monitor telemetry message in event hub messages
 //
-function monitorTelemetryMessageDoWork(IoTHubConnectionString: string, port: number): Promise<number> {
-    return monitorTelemetryMessage(IoTHubConnectionString, port);
+function monitorTelemetryMessageDoWork(IoTHubConnectionString: string, port: number, address: string): Promise<number> {
+    return monitorTelemetryMessage(IoTHubConnectionString, port, address);
 }
 
 //
 // monitorTelemetryMessage monitor telemetry message in event hub messages
 //
-async function monitorTelemetryMessage(IoTHubConnectionString: string, port: number): Promise<number> {
+async function monitorTelemetryMessage(IoTHubConnectionString: string, port: number, address: string): Promise<number> {
     let error = null;
     const startAfterTime = Date.now() - 5000
     let client = await EventHubClient.createFromIotHubConnectionString(IoTHubConnectionString);
@@ -80,12 +80,12 @@ async function monitorTelemetryMessage(IoTHubConnectionString: string, port: num
                 udp_client.on('message', (msg, rinfo) => {
                     console.log(`server got: ${msg} from ${rinfo.address}:${rinfo.port}`);
                 });
-                udp_client.connect(port);
+                udp_client.connect(port, address);
                 dict[deviceId] = udp_client;
             }
             let eventMsg = getEventHubDecodedMessage(eventData);
             console.log('eventMsg: ' + eventMsg);
-            dict[deviceId].send(eventMsg)
+            dict[deviceId].send(eventMsg, port, address);
         };
         const onEventHubError = function (err) {
             console.log(('Error from Event Hub Client Receiver: ' + err.toString()));
@@ -147,17 +147,23 @@ let argv = require('yargs')
         alias: 'c',
         describe: 'The connection string for the *IoTHub* instance',
         type: 'string',
-        demandOption: false
+        demandOption: true
     })
     .option('port', {
         alias: 'p',
         describe: 'The UDP port microROS agent is listening',
         type: 'number',
-        demandOption: false
+        demandOption: true
+    })
+    .option('address', {
+        alias: 'a',
+        describe: 'The IP address of microROS agent',
+        type: 'string',
+        demandOption: true
     })
     .argv;
 
 // IoTHubConnectionString is the Hub connection string used to create our test device against
 const IoTHubConnectionString: string = getHubConnectionString()
 
-monitorTelemetryMessage(IoTHubConnectionString, argv.port);
+monitorTelemetryMessage(IoTHubConnectionString, argv.port, argv.address);
