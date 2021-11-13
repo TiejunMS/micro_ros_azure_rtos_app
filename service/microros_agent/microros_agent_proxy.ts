@@ -16,7 +16,7 @@ const Message = require('azure-iot-common').Message;
 const EventHubClient = require('@azure/event-hubs').EventHubClient;
 const EventPosition = require('@azure/event-hubs').EventPosition;
 const ProvisioningServiceClient = require('azure-iot-provisioning-service').ProvisioningServiceClient;
-
+const MicroROSCommand:string = 'receive';
 
 //
 // isEmpty check if object is empty.
@@ -62,8 +62,9 @@ function monitorTelemetryMessageDoWork(IoTHubConnectionString: string, port: num
 async function monitorTelemetryMessage(IoTHubConnectionString: string, port: number, address: string): Promise<number> {
     let error = null;
     const startAfterTime = Date.now() - 5000
-    let client = await EventHubClient.createFromIotHubConnectionString(IoTHubConnectionString);
-    let partitionIds = await client.getPartitionIds();
+    let event_client = await EventHubClient.createFromIotHubConnectionString(IoTHubConnectionString);
+    let iothub_client = serviceSDK.Client.fromConnectionString(IoTHubConnectionString);
+    let partitionIds = await event_client.getPartitionIds();
     let dict = {};
 
     let workPromise: Promise<void> = new Promise(function (resolve, reject) {
@@ -79,13 +80,16 @@ async function monitorTelemetryMessage(IoTHubConnectionString: string, port: num
                 });
                 udp_client.on('message', (msg, rinfo) => {
                     console.log(`server got: ${msg} from ${rinfo.address}:${rinfo.port}`);
+                    invokeCommand(iothub_client, deviceId, MicroROSCommand, {}, msg);
                 });
                 udp_client.connect(port, address);
                 dict[deviceId] = udp_client;
             }
             let eventMsg = getEventHubDecodedMessage(eventData);
             console.log('eventMsg: ' + eventMsg);
-            dict[deviceId].send(eventMsg, port, address);
+            if (eventData.body.hasOwnProperty['data']) {
+                dict[deviceId].send(eventData.body['data'], port, address);
+            }
         };
         const onEventHubError = function (err) {
             console.log(('Error from Event Hub Client Receiver: ' + err.toString()));
@@ -94,7 +98,7 @@ async function monitorTelemetryMessage(IoTHubConnectionString: string, port: num
 
         // Listing for message in all partitions
         partitionIds.forEach(function (partitionId) {
-            client.receive(partitionId, onEventHubMessage, onEventHubError, {
+            event_client.receive(partitionId, onEventHubMessage, onEventHubError, {
                 eventPosition: EventPosition.fromEnqueuedTime(startAfterTime)
             });
         });
@@ -108,10 +112,10 @@ async function monitorTelemetryMessage(IoTHubConnectionString: string, port: num
         error = err
     }
 
-    if (client) {
+    if (event_client) {
         try {
             console.log("Closing client")
-            await client.close();
+            await event_client.close();
         } catch (err) {
             console.log(err)
         }
@@ -141,13 +145,35 @@ function getHubConnectionString(): string {
     }
 }
 
+
+//
+// invokeCommand invokes command by sending Direct method message.
+//
+function invokeCommand(client, deviceId:string, methodName:string, properties:Object, payload:Buffer) {
+    const methodParams: DeviceMethodParams = {
+        methodName: methodName,
+        payload: payload,
+        connectTimeoutInSeconds: 30,
+        responseTimeoutInSeconds: 60
+      };
+    
+    client.invokeDeviceMethod(deviceId, methodParams, (err, result, response) => {
+        if (err) {
+        }
+        else if (result.status != 0) {
+            throw new Error("failed to execute : " + JSON.stringify(result.payload)) 
+        }
+      });
+}
+
+
 let argv = require('yargs')
-    .usage('Usage: $0 --connectionString <HUB CONNECTION STRING> --port <UDP port of microROS agent>')
+    .usage('Usage: $0 --connectionString <HUB CONNECTION STRING> --port <UDP port of microROS agent> --address <IP address of microROS agent>')
     .option('connectionString', {
         alias: 'c',
         describe: 'The connection string for the *IoTHub* instance',
         type: 'string',
-        demandOption: true
+        demandOption: false
     })
     .option('port', {
         alias: 'p',
