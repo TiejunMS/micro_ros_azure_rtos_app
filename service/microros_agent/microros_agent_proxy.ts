@@ -87,9 +87,7 @@ async function monitorTelemetryMessage(IoTHubConnectionString: string, port: num
             }
             let eventMsg = getEventHubDecodedMessage(eventData);
             console.log('eventMsg: ' + eventMsg);
-            if (eventData.body.hasOwnProperty['data']) {
-                dict[deviceId].send(eventData.body['data'], port, address);
-            }
+            dict[deviceId].send(eventData.body, port, address);
         };
         const onEventHubError = function (err) {
             console.log(('Error from Event Hub Client Receiver: ' + err.toString()));
@@ -160,8 +158,8 @@ function invokeCommand(client, deviceId:string, methodName:string, properties:Ob
     client.invokeDeviceMethod(deviceId, methodParams, (err, result, response) => {
         if (err) {
         }
-        else if (result.status != 0) {
-            throw new Error("failed to execute : " + JSON.stringify(result.payload)) 
+        else if (result.status != 200) {
+            throw new Error("status = " + result.status); 
         }
       });
 }
