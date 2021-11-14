@@ -80,7 +80,7 @@ async function monitorTelemetryMessage(IoTHubConnectionString: string, port: num
                 });
                 udp_client.on('message', (msg, rinfo) => {
                     console.log(`server got: ${msg} from ${rinfo.address}:${rinfo.port}`);
-                    invokeCommand(iothub_client, deviceId, MicroROSCommand, {}, msg);
+                    invokeCommand(iothub_client, deviceId, MicroROSCommand, {}, msg.toString('base64'));
                 });
                 udp_client.connect(port, address);
                 dict[deviceId] = udp_client;
@@ -147,7 +147,7 @@ function getHubConnectionString(): string {
 //
 // invokeCommand invokes command by sending Direct method message.
 //
-function invokeCommand(client, deviceId:string, methodName:string, properties:Object, payload:Buffer) {
+function invokeCommand(client, deviceId:string, methodName:string, properties:Object, payload:String) {
     const methodParams: DeviceMethodParams = {
         methodName: methodName,
         payload: payload,
