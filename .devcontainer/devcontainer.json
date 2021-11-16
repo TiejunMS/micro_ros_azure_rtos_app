@@ -11,5 +11,5 @@
 	],
 	"appPort": [ "8888:8888/udp" ],
 
-	"postCreateCommand": "git submodule update --recursive --init"
+	"postCreateCommand": "cd service && npm install && npm run build"
 }
